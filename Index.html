@@ -540,25 +540,26 @@
         min-height: auto !important;
       }
       
-      /* 隱藏外圍的漸層裝飾 */
       body::before, body::after {
         display: none !important;
       }
 
-      /* 隱藏除了 statusOverlay 裡面的收據 (receipt-card) 之外的所有元素 */
-      .container > :not(.card),
-      .card > :not(#statusOverlay),
-      #statusOverlay > :not(#receiptCard),
-      .btn-container,
-      #loadingSpinner,
-      #statusIcon,
-      #statusTitle,
-      #statusDesc {
+      /* ==========================================================
+         個人收據列印模式 (print-receipt-mode)
+         ========================================================== */
+      body.print-receipt-mode .container > :not(.card),
+      body.print-receipt-mode .card:first-of-type > :not(#statusOverlay),
+      body.print-receipt-mode #statusOverlay > :not(#receiptCard),
+      body.print-receipt-mode .btn-container,
+      body.print-receipt-mode #loadingSpinner,
+      body.print-receipt-mode #statusIcon,
+      body.print-receipt-mode #statusTitle,
+      body.print-receipt-mode #statusDesc,
+      body.print-receipt-mode .list-card {
         display: none !important;
       }
 
-      /* 移除定位限制，讓收據成為列印的主體 */
-      #statusOverlay {
+      body.print-receipt-mode #statusOverlay {
         position: static !important;
         background: transparent !important;
         opacity: 1 !important;
@@ -569,7 +570,7 @@
         align-items: center !important;
       }
 
-      .card {
+      body.print-receipt-mode .card {
         border: none !important;
         background: transparent !important;
         box-shadow: none !important;
@@ -578,8 +579,7 @@
         -webkit-backdrop-filter: none !important;
       }
 
-      /* 列印版面樣式重置為白底黑字 */
-      .receipt-card {
+      body.print-receipt-mode .receipt-card {
         max-width: 320px !important;
         border: 1px dashed #000000 !important;
         background: #ffffff !important;
@@ -589,25 +589,67 @@
         margin: 0 !important;
       }
 
-      .receipt-header h3,
-      .receipt-row .val,
-      .receipt-row .val.drink-name {
+      body.print-receipt-mode .receipt-header h3,
+      body.print-receipt-mode .receipt-row .val,
+      body.print-receipt-mode .receipt-row .val.drink-name {
         color: #000000 !important;
       }
 
-      .receipt-row .label {
+      body.print-receipt-mode .receipt-row .label {
         color: #333333 !important;
       }
 
-      .receipt-divider {
+      body.print-receipt-mode .receipt-divider {
         border-top: 1px dashed #000000 !important;
       }
 
-      /* 列印時隱藏今日訂購清單 */
-      .list-card {
+      /* ==========================================================
+         整張點單清單列印模式 (print-list-mode)
+         ========================================================== */
+      body.print-list-mode .container > :not(.list-card),
+      body.print-list-mode .list-header .list-title i,
+      body.print-list-mode .list-header div, /* 隱藏列印按鈕與摺疊箭頭 */
+      body.print-list-mode .orders-table th:last-child,
+      body.print-list-mode .orders-table td:last-child {
         display: none !important;
       }
-    } 
+
+      body.print-list-mode .list-card {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        padding: 10px !important;
+        margin: 0 !important;
+      }
+
+      body.print-list-mode .list-content {
+        max-height: none !important;
+        margin-top: 10px !important;
+      }
+
+      body.print-list-mode .orders-table {
+        width: 100% !important;
+        color: #000000 !important;
+      }
+
+      body.print-list-mode .orders-table th {
+        color: #333333 !important;
+        border-bottom: 2px solid #000000 !important;
+      }
+
+      body.print-list-mode .orders-table td {
+        color: #000000 !important;
+        border-bottom: 1px solid #cccccc !important;
+      }
+
+      body.print-list-mode .table-drink {
+        color: #000000 !important;
+      }
+    }
 
     /* 表單標題區塊 */
     .form-header {
@@ -766,6 +808,28 @@
       transform: scale(1.1);
     }
 
+    /* 列印清單小按鈕樣式 */
+    .list-print-action-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .list-print-action-btn:hover {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(255, 126, 95, 0.2);
+    }
+
 
 
     /* RWD 手機版調整 */
@@ -848,7 +912,7 @@
 
         <!-- 操作按鈕 -->
         <div id="btnContainer" class="btn-container" style="display: none;">
-          <button id="printBtn" class="status-btn print-btn" onclick="window.print()">
+          <button id="printBtn" class="status-btn print-btn" onclick="printReceipt()">
             <i class="fa-solid fa-print"></i>列印收據
           </button>
           <button id="closeOverlayBtn" class="status-btn" onclick="closeOverlay()">
@@ -1002,7 +1066,12 @@
     <div class="card list-card" style="margin-top: 25px;">
       <div class="list-header" onclick="toggleOrderList()">
         <h2 class="list-title"><i class="fa-solid fa-list-check" style="margin-right: 8px;"></i>今日訂購清單</h2>
-        <i id="listToggleIcon" class="fa-solid fa-chevron-down toggle-icon"></i>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <button type="button" class="list-print-action-btn" onclick="event.stopPropagation(); printOrderList();" title="列印今日整張訂單明細">
+            <i class="fa-solid fa-print"></i>列印清單
+          </button>
+          <i id="listToggleIcon" class="fa-solid fa-chevron-down toggle-icon"></i>
+        </div>
       </div>
       <div id="orderListContainer" class="list-content active">
         <div id="ordersLoading" class="loading-text">
@@ -1427,6 +1496,31 @@
         }, 1200);
       }
     }
+
+    // 列印個人收據
+    function printReceipt() {
+      document.body.classList.add('print-receipt-mode');
+      window.print();
+    }
+
+    // 列印整張今日訂購清單 (Google Sheets 投影表格)
+    function printOrderList() {
+      // 確保清單處於展開狀態再進行列印
+      const content = document.getElementById('orderListContainer');
+      const icon = document.getElementById('listToggleIcon');
+      if (!content.classList.contains('active')) {
+        content.classList.add('active');
+        icon.classList.remove('rotate');
+      }
+      
+      document.body.classList.add('print-list-mode');
+      window.print();
+    }
+
+    // 列印視窗關閉後，自動清除列印模式的 class
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('print-receipt-mode', 'print-list-mode');
+    });
   </script>
 
 </body>

@@ -362,13 +362,14 @@
       pointer-events: none;
       transition: var(--transition-smooth);
       border-radius: 24px;
-      padding: 20px;
+      padding: 30px 20px;
       text-align: center;
     }
 
     .overlay.active {
       opacity: 1;
       pointer-events: auto;
+      overflow-y: auto;
     }
 
     /* 載入中 Spinner */
@@ -388,8 +389,8 @@
 
     /* 成功 / 失敗狀態圖示 */
     .status-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
+      font-size: 54px;
+      margin-bottom: 15px;
       transform: scale(0.5);
       transition: var(--transition-smooth);
     }
@@ -409,34 +410,206 @@
     }
 
     .status-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .status-desc {
       color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 30px;
-      max-width: 80%;
+      font-size: 13px;
+      margin-bottom: 20px;
+      max-width: 90%;
       line-height: 1.5;
     }
 
+    /* 收據明細設計 */
+    .receipt-card {
+      width: 100%;
+      max-width: 320px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: left;
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .receipt-header h3 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .receipt-header p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      margin: 12px 0;
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13.5px;
+    }
+
+    .receipt-row .label {
+      color: var(--text-muted);
+    }
+
+    .receipt-row .val {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .receipt-row .val.drink-name {
+      color: #feb47b;
+    }
+
+    /* 按鈕容器 */
+    .btn-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      max-width: 320px;
+    }
+
     .status-btn {
-      padding: 12px 28px;
+      flex: 1;
+      padding: 12px 18px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--glass-border);
       border-radius: 12px;
       color: var(--text-main);
       font-family: var(--font-family);
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: var(--transition-smooth);
     }
 
     .status-btn:hover {
       background: rgba(255, 255, 255, 0.15);
       border-color: #fff;
+    }
+
+    .status-btn.print-btn {
+      background: var(--primary-gradient);
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(255, 126, 95, 0.25);
+    }
+
+    .status-btn.print-btn:hover {
+      box-shadow: 0 6px 20px rgba(255, 126, 95, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================================
+       列印專用 CSS 媒體查詢 (Print Styles)
+       當呼叫 window.print() 時觸發，僅列印收據內容，隱藏其餘網頁介面。
+       ========================================================================== */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        min-height: auto !important;
+      }
+      
+      /* 隱藏外圍的漸層裝飾 */
+      body::before, body::after {
+        display: none !important;
+      }
+
+      /* 隱藏除了 statusOverlay 裡面的收據 (receipt-card) 之外的所有元素 */
+      .container > :not(.card),
+      .card > :not(#statusOverlay),
+      #statusOverlay > :not(#receiptCard),
+      .btn-container,
+      #loadingSpinner,
+      #statusIcon,
+      #statusTitle,
+      #statusDesc {
+        display: none !important;
+      }
+
+      /* 移除定位限制，讓收據成為列印的主體 */
+      #statusOverlay {
+        position: static !important;
+        background: transparent !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+      }
+
+      .card {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      /* 列印版面樣式重置為白底黑字 */
+      .receipt-card {
+        max-width: 320px !important;
+        border: 1px dashed #000000 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        padding: 15px !important;
+        margin: 0 !important;
+      }
+
+      .receipt-header h3,
+      .receipt-row .val,
+      .receipt-row .val.drink-name {
+        color: #000000 !important;
+      }
+
+      .receipt-row .label {
+        color: #333333 !important;
+      }
+
+      .receipt-divider {
+        border-top: 1px dashed #000000 !important;
+      }
     }
 
     /* RWD 手機版調整 */
@@ -483,7 +656,49 @@
         <div id="statusIcon" class="status-icon"></div>
         <div id="statusTitle" class="status-title">提交中...</div>
         <div id="statusDesc" class="status-desc">請稍候，阿芝正在幫您記錄訂單</div>
-        <button id="closeOverlayBtn" class="status-btn" style="display: none;" onclick="closeOverlay()">回表單</button>
+        
+        <!-- 點單成功後要顯示的收據單 -->
+        <div id="receiptCard" class="receipt-card" style="display: none;">
+          <div class="receipt-header">
+            <h3>SIPORDER 訂單收據</h3>
+            <p id="receiptTime">2026/07/02 12:00:00</p>
+          </div>
+          <div class="receipt-divider"></div>
+          <div class="receipt-row">
+            <span class="label">訂購者</span>
+            <span class="val" id="receiptBuyer">-</span>
+          </div>
+          <div class="receipt-row">
+            <span class="label">飲料品項</span>
+            <span class="val drink-name" id="receiptDrink">-</span>
+          </div>
+          <div class="receipt-row">
+            <span class="label">甜度選擇</span>
+            <span class="val" id="receiptSugar">-</span>
+          </div>
+          <div class="receipt-row">
+            <span class="label">冰量選擇</span>
+            <span class="val" id="receiptIce">-</span>
+          </div>
+          <div class="receipt-row">
+            <span class="label">訂購數量</span>
+            <span class="val" id="receiptQty">1 杯</span>
+          </div>
+          <div class="receipt-divider"></div>
+          <div class="receipt-header" style="margin-bottom: 0;">
+            <p>～謝謝您的點單，阿芝已為您記錄～</p>
+          </div>
+        </div>
+
+        <!-- 操作按鈕 -->
+        <div id="btnContainer" class="btn-container" style="display: none;">
+          <button id="printBtn" class="status-btn print-btn" onclick="window.print()">
+            <i class="fa-solid fa-print"></i>列印收據
+          </button>
+          <button id="closeOverlayBtn" class="status-btn" onclick="closeOverlay()">
+            回表單
+          </button>
+        </div>
       </div>
 
       <form id="orderForm" onsubmit="handleFormSubmit(event)">
@@ -641,14 +856,27 @@
       quantityInput.value = currentVal;
     }
 
+    // 格式化日期時間
+    function getFormattedDate() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return yyyy + '/' + mm + '/' + dd + ' ' + hh + ':' + min + ':' + ss;
+    }
+
     // 關閉狀態遮罩
     function closeOverlay() {
       const overlay = document.getElementById('statusOverlay');
       overlay.classList.remove('active');
       
-      // 重置或關閉按鈕
+      // 重置或關閉按鈕與收據卡片
       setTimeout(() => {
-        document.getElementById('closeOverlayBtn').style.display = 'none';
+        document.getElementById('btnContainer').style.display = 'none';
+        document.getElementById('receiptCard').style.display = 'none';
         document.getElementById('loadingSpinner').style.display = 'block';
         document.getElementById('statusIcon').className = 'status-icon';
         document.getElementById('statusIcon').innerHTML = '';
@@ -677,14 +905,26 @@
       const statusIcon = document.getElementById('statusIcon');
       const statusTitle = document.getElementById('statusTitle');
       const statusDesc = document.getElementById('statusDesc');
-      const closeBtn = document.getElementById('closeOverlayBtn');
+      
+      const receiptCard = document.getElementById('receiptCard');
+      const btnContainer = document.getElementById('btnContainer');
 
       overlay.classList.add('active');
       spinner.style.display = 'block';
       statusIcon.style.display = 'none';
+      receiptCard.style.display = 'none';
+      btnContainer.style.display = 'none';
+      
       statusTitle.textContent = '訂單提交中...';
       statusDesc.textContent = '阿芝正在與 Google 試算表連線，請稍候。';
-      closeBtn.style.display = 'none';
+
+      // 填充收據資料準備列印
+      document.getElementById('receiptTime').textContent = getFormattedDate();
+      document.getElementById('receiptBuyer').textContent = buyer;
+      document.getElementById('receiptDrink').textContent = drink;
+      document.getElementById('receiptSugar').textContent = sugar;
+      document.getElementById('receiptIce').textContent = ice;
+      document.getElementById('receiptQty').textContent = quantity + ' 杯';
 
       // 訂單資料封裝
       const orderData = {
@@ -709,6 +949,9 @@
               statusTitle.textContent = '點單成功！';
               statusDesc.textContent = response.message || '阿芝已經幫您記錄在試算表中。';
               
+              // 顯示收據
+              receiptCard.style.display = 'block';
+              
               // 成功後重置表單（但保留訂購者名字方便下一次點單）
               document.getElementById('drink').value = '';
               document.getElementById('quantity').value = '1';
@@ -719,7 +962,7 @@
               statusTitle.textContent = '提交失敗';
               statusDesc.textContent = response.message || '請聯絡系統管理員確認試算表權限。';
             }
-            closeBtn.style.display = 'inline-block';
+            btnContainer.style.display = 'flex';
           })
           .withFailureHandler(function(error) {
             // Apps Script 調用崩潰 (如函數不存在等)
@@ -729,7 +972,7 @@
             statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
             statusTitle.textContent = '系統錯誤';
             statusDesc.textContent = '無法連線至 Google 服務，請確認您的部署連結。' + (error ? ' (' + error.toString() + ')' : '');
-            closeBtn.style.display = 'inline-block';
+            btnContainer.style.display = 'flex';
           })
           .submitOrder(orderData);
       } else {
@@ -742,8 +985,11 @@
           statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
           statusTitle.textContent = '本地開發預覽模式';
           statusDesc.textContent = '模擬提交成功！(此環境無實體 Google Sheets，但運作正常。)\n' +
-            '請點單者：' + buyer + ' | 飲料：' + drink + ' | ' + sugar + ' | ' + ice + ' | 數量：' + quantity + ' 杯。';
-          closeBtn.style.display = 'inline-block';
+            '點單完成後您可以在下方點選列印此單收據。';
+          
+          // 顯示收據
+          receiptCard.style.display = 'block';
+          btnContainer.style.display = 'flex';
           
           // 模擬重置
           document.getElementById('drink').value = '';

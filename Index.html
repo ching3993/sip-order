@@ -584,7 +584,32 @@
       .receipt-divider {
         border-top: 1px dashed #000000 !important;
       }
+
+    /* 表單標題抬頭 */
+    .form-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--text-main);
+      position: relative;
+      padding-bottom: 12px;
+      letter-spacing: 1px;
     }
+    
+    .form-title::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background: var(--primary-gradient);
+      border-radius: 2px;
+    }
+    }
+
 
     /* RWD 手機版調整 */
     @media (max-width: 480px) {
@@ -676,6 +701,7 @@
       </div>
 
       <form id="orderForm" onsubmit="handleFormSubmit(event)">
+        <h2 class="form-title">飲料訂購單</h2>
         
         <!-- 第一項：訂購者 -->
         <div class="form-group">

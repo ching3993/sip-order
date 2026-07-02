@@ -40,6 +40,12 @@ function submitOrder(orderData) {
     
     // 取得當前試算表中的第一個工作表
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) {
+      return {
+        success: false,
+        message: "找不到綁定的試算表！請確保您的 Apps Script 是從 Google 試算表的選單「延伸模組」->「Apps Script」中建立並開啟的（容器繫結腳本），不能是獨立的 Apps Script 專案。"
+      };
+    }
     var sheet = ss.getSheets()[0];
     
     // 如果工作表是空的（無任何資料），自動寫入第一行欄位標題

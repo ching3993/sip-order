@@ -42,6 +42,11 @@ function submitOrder(orderData) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheets()[0];
     
+    // 如果工作表是空的（無任何資料），自動寫入第一行欄位標題
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["時間戳記", "訂購者", "飲料品項", "甜度", "冰量", "數量", "狀態"]);
+    }
+    
     // 解析資料
     var buyer = orderData.buyer ? orderData.buyer.trim() : "";
     var drink = orderData.drink ? orderData.drink.trim() : "";

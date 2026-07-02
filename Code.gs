@@ -85,6 +85,13 @@ function submitOrder(orderData) {
       "待處理"
     ]);
     
+    // 取得剛剛寫入的列號
+    var addedRow = sheet.getLastRow();
+    
+    // 將「時間戳記」（第 1 欄）與「數量」（第 6 欄）的儲存格設定為靠左對齊
+    sheet.getRange(addedRow, 1).setHorizontalAlignment("left");
+    sheet.getRange(addedRow, 6).setHorizontalAlignment("left");
+    
     return {
       success: true,
       message: "訂單提交成功！謝謝 " + buyer + "，阿芝已為您記錄。"

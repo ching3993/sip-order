@@ -107,3 +107,84 @@ function submitOrder(orderData) {
     lock.releaseLock();
   }
 }
+
+/**
+ * 讀取試算表中的所有訂單
+ * 
+ * @return {Array<Object>} 訂單資料陣列
+ */
+function getOrders() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) return [];
+  var sheet = ss.getSheets()[0];
+  var lastRow = sheet.getLastRow();
+  
+  if (lastRow <= 1) {
+    return []; // 只有標題列或完全空白
+  }
+  
+  // 讀取所有資料列（從第 2 列開始，讀取全部 7 個欄位）
+  var range = sheet.getRange(2, 1, lastRow - 1, 7);
+  var values = range.getValues();
+  
+  var orders = [];
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+    // i + 2 即為該列在 Google Sheets 上的實體 rowIndex
+    orders.push({
+      rowIndex: i + 2,
+      timestamp: row[0] ? Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "yyyy/MM/dd HH:mm:ss") : "",
+      buyer: row[1] || "",
+      drink: row[2] || "",
+      sugar: row[3] || "",
+      ice: row[4] || "",
+      quantity: row[5] || 1,
+      status: row[6] || "待處理"
+    });
+  }
+  
+  return orders;
+}
+
+/**
+ * 刪除指定行號的訂單
+ * 
+ * @param {number} rowIndex 要刪除的行號 (1-indexed)
+ * @return {Object} 刪除結果狀態
+ */
+function deleteOrder(rowIndex) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) {
+      return { success: false, message: "找不到綁定的試算表！" };
+    }
+    var sheet = ss.getSheets()[0];
+    var lastRow = sheet.getLastRow();
+    
+    if (rowIndex < 2 || rowIndex > lastRow) {
+      return { success: false, message: "無效的訂單行號！" };
+    }
+    
+    var buyer = sheet.getRange(rowIndex, 2).getValue();
+    var drink = sheet.getRange(rowIndex, 3).getValue();
+    
+    // 刪除該列
+    sheet.deleteRow(rowIndex);
+    
+    return {
+      success: true,
+      message: "成功刪除 " + buyer + " 點的 " + drink + " 訂單！"
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
+      message: "刪除失敗，錯誤原因：" + error.toString()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}

@@ -603,6 +603,12 @@
         border-top: 1px dashed #000000 !important;
       }
 
+      /* 列印時隱藏今日訂購清單 */
+      .list-card {
+        display: none !important;
+      }
+    } 
+
     /* 表單標題區塊 */
     .form-header {
       text-align: center;
@@ -658,6 +664,106 @@
       color: var(--error-color);
       transform: translateY(-50%) rotate(15deg);
     }
+    }
+
+    /* 訂購清單卡片 */
+    .list-card {
+      margin-top: 25px;
+      padding: 25px 30px;
+    }
+    
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .list-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+    }
+    
+    .toggle-icon {
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+    
+    .toggle-icon.rotate {
+      transform: rotate(180deg);
+    }
+    
+    .list-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    
+    .list-content.active {
+      max-height: 800px;
+      margin-top: 20px;
+      overflow: visible;
+    }
+    
+    .loading-text, .no-data-text {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      padding: 20px 0;
+    }
+    
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .orders-table th, .orders-table td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    
+    .orders-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    
+    .orders-table td {
+      color: var(--text-main);
+    }
+    
+    .orders-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .table-drink {
+      font-weight: 600;
+      color: #feb47b;
+    }
+    
+    .delete-row-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+    
+    .delete-row-btn:hover {
+      background: rgba(255, 23, 68, 0.1);
+      color: var(--error-color);
+      transform: scale(1.1);
     }
 
 
@@ -891,6 +997,39 @@
 
       </form>
     </div>
+
+    <!-- 訂購清單卡片 -->
+    <div class="card list-card" style="margin-top: 25px;">
+      <div class="list-header" onclick="toggleOrderList()">
+        <h2 class="list-title"><i class="fa-solid fa-list-check" style="margin-right: 8px;"></i>今日訂購清單</h2>
+        <i id="listToggleIcon" class="fa-solid fa-chevron-down toggle-icon"></i>
+      </div>
+      <div id="orderListContainer" class="list-content active">
+        <div id="ordersLoading" class="loading-text">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> 正在載入訂單...
+        </div>
+        <div id="noOrders" class="no-data-text" style="display: none;">
+          目前還沒有人點單喔，快來當第一個點單的人吧！ ☕
+        </div>
+        <div id="ordersTableWrapper" style="display: none; overflow-x: auto;">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>訂購者</th>
+                <th>品項</th>
+                <th>甜度/冰量</th>
+                <th>數量</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="ordersListBody">
+              <!-- 動態生成 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -1068,6 +1207,9 @@
               // 成功後重置表單（但保留訂購者名字方便下一次點單）
               document.getElementById('drink').value = '';
               document.getElementById('quantity').value = '1';
+              
+              // 提交成功後即時重新整理下方點單清單
+              fetchOrders();
             } else {
               // 失敗狀態 (Apps Script 回傳 success: false)
               statusIcon.className = 'status-icon error';
@@ -1107,7 +1249,182 @@
           // 模擬重置
           document.getElementById('drink').value = '';
           document.getElementById('quantity').value = '1';
+          
+          // 模擬提交成功後重新整理清單
+          fetchOrders();
         }, 1500);
+      }
+    }
+
+    // 頁面載入完成後自動拉取今日訂單清單
+    window.addEventListener('DOMContentLoaded', (event) => {
+      fetchOrders();
+    });
+
+    // 儲存本地模擬點單的暫存陣列 (方便本地預覽時能測試完整增刪功能)
+    let localMockOrders = [
+      { rowIndex: 2, timestamp: '2026/07/02 23:56:42', buyer: 'coco', drink: '烏龍綠茶', sugar: '全糖', ice: '全冰', quantity: 2, status: '待處理' },
+      { rowIndex: 3, timestamp: '2026/07/03 00:05:12', buyer: '阿芝', drink: '四季春茶', sugar: '無糖', ice: '去冰', quantity: 1, status: '待處理' }
+    ];
+
+    // 取得並載入訂單清單
+    function fetchOrders() {
+      const loading = document.getElementById('ordersLoading');
+      const noOrders = document.getElementById('noOrders');
+      const tableWrapper = document.getElementById('ordersTableWrapper');
+      
+      loading.style.display = 'block';
+      noOrders.style.display = 'none';
+      tableWrapper.style.display = 'none';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(renderOrders)
+          .withFailureHandler(function(err) {
+            loading.style.display = 'none';
+            noOrders.textContent = '載入點單清單失敗，請確認部署設定。';
+            noOrders.style.display = 'block';
+          })
+          .getOrders();
+      } else {
+        // 本地預覽開發環境：使用模擬資料
+        setTimeout(() => {
+          renderOrders(localMockOrders);
+        }, 800);
+      }
+    }
+
+    // 將資料渲染至 HTML 表格中
+    function renderOrders(orders) {
+      const loading = document.getElementById('ordersLoading');
+      const noOrders = document.getElementById('noOrders');
+      const tableWrapper = document.getElementById('ordersTableWrapper');
+      const listBody = document.getElementById('ordersListBody');
+      
+      loading.style.display = 'none';
+      listBody.innerHTML = '';
+
+      if (!orders || orders.length === 0) {
+        noOrders.style.display = 'block';
+        tableWrapper.style.display = 'none';
+        return;
+      }
+
+      noOrders.style.display = 'none';
+      tableWrapper.style.display = 'block';
+
+      orders.forEach(order => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(order.buyer)}</td>
+          <td><span class="table-drink">${escapeHtml(order.drink)}</span></td>
+          <td>${order.sugar} / ${order.ice}</td>
+          <td><strong>${order.quantity}</strong> 杯</td>
+          <td>
+            <button type="button" class="delete-row-btn" onclick="deleteTargetOrder(${order.rowIndex}, '${escapeHtml(order.buyer)}', '${escapeHtml(order.drink)}')" title="刪除此筆訂單">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        listBody.appendChild(tr);
+      });
+    }
+
+    // HTML 逸出安全防護 (防範 XSS)
+    function escapeHtml(string) {
+      return String(string).replace(/[&<>"']/g, function (s) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': '&quot;',
+          "'": '&#39;'
+        }[s];
+      });
+    }
+
+    // 摺疊 / 展開訂購清單卡片
+    function toggleOrderList() {
+      const content = document.getElementById('orderListContainer');
+      const icon = document.getElementById('listToggleIcon');
+      content.classList.toggle('active');
+      icon.classList.toggle('rotate');
+    }
+
+    // 呼叫後端刪除指定行數訂單
+    function deleteTargetOrder(rowIndex, buyer, drink) {
+      if (!confirm(`確定要刪除「${buyer}」的「${drink}」訂單嗎？\n此動作將會從 Google 試算表中永久移除該列資料！`)) {
+        return;
+      }
+      
+      // 顯示加載中覆蓋層
+      const overlay = document.getElementById('statusOverlay');
+      const spinner = document.getElementById('loadingSpinner');
+      const statusIcon = document.getElementById('statusIcon');
+      const statusTitle = document.getElementById('statusTitle');
+      const statusDesc = document.getElementById('statusDesc');
+      const btnContainer = document.getElementById('btnContainer');
+      const receiptCard = document.getElementById('receiptCard');
+
+      overlay.classList.add('active');
+      spinner.style.display = 'block';
+      statusIcon.style.display = 'none';
+      receiptCard.style.display = 'none';
+      btnContainer.style.display = 'none';
+      
+      statusTitle.textContent = '訂單刪除中...';
+      statusDesc.textContent = `正在將 ${buyer} 的點單資料從 Google Sheets 中移除，請稍候。`;
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            spinner.style.display = 'none';
+            statusIcon.style.display = 'block';
+            
+            if (response && response.success) {
+              statusIcon.className = 'status-icon success';
+              statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+              statusTitle.textContent = '刪除成功！';
+              statusDesc.textContent = response.message;
+              
+              // 重新載入列表
+              fetchOrders();
+            } else {
+              statusIcon.className = 'status-icon error';
+              statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+              statusTitle.textContent = '刪除失敗';
+              statusDesc.textContent = response.message || '無法刪除指定行數。';
+            }
+            btnContainer.style.display = 'flex';
+          })
+          .withFailureHandler(function(error) {
+            spinner.style.display = 'none';
+            statusIcon.style.display = 'block';
+            statusIcon.className = 'status-icon error';
+            statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            statusTitle.textContent = '系統錯誤';
+            statusDesc.textContent = '刪除呼叫失敗，請確認您的部署連結。' + (error ? ' (' + error.toString() + ')' : '');
+            btnContainer.style.display = 'flex';
+          })
+          .deleteOrder(rowIndex);
+      } else {
+        // 本地模擬刪除邏輯 (並在模擬陣列中刪除對應 rowIndex)
+        setTimeout(() => {
+          spinner.style.display = 'none';
+          statusIcon.style.display = 'block';
+          statusIcon.className = 'status-icon success';
+          statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+          statusTitle.textContent = '本地模擬刪除成功';
+          statusDesc.textContent = `成功刪除 ${buyer} 點的 ${drink} 訂單！(本地模擬資料更新中)`;
+          
+          btnContainer.style.display = 'flex';
+          
+          // 在暫存模擬中過濾掉該 rowIndex
+          localMockOrders = localMockOrders.filter(order => order.rowIndex !== rowIndex);
+          
+          // 重新載入
+          fetchOrders();
+        }, 1200);
       }
     }
   </script>

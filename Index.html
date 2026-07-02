@@ -188,32 +188,6 @@
       color: #ff7e5f;
     }
 
-    /* 飲料推薦快捷選項 */
-    .quick-drinks {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .quick-drink-badge {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: var(--transition-smooth);
-    }
-
-    .quick-drink-badge:hover {
-      background: var(--primary-gradient);
-      color: #fff;
-      border-color: transparent;
-      transform: translateY(-2px);
-    }
-
     /* 甜度與冰量選擇網格 */
     .segmented-control {
       display: grid;
@@ -728,17 +702,9 @@
               type="text" 
               id="drink" 
               class="input-control" 
-              placeholder="請輸入或選擇飲料品項" 
+              placeholder="請輸入飲料品項" 
               required
             >
-          </div>
-          <!-- 熱門推薦快捷點選 -->
-          <div class="quick-drinks">
-            <span class="quick-drink-badge" onclick="setQuickDrink('珍珠奶茶')">🧋 珍珠奶茶</span>
-            <span class="quick-drink-badge" onclick="setQuickDrink('四季春茶')">🍵 四季春茶</span>
-            <span class="quick-drink-badge" onclick="setQuickDrink('紅茶拿鐵')">🥛 紅茶拿鐵</span>
-            <span class="quick-drink-badge" onclick="setQuickDrink('鮮橙綠茶')">🍊 鮮橙綠茶</span>
-          </div>
         </div>
 
         <!-- 第三項：甜度 -->
@@ -840,11 +806,6 @@
   </div>
 
   <script>
-    // 快捷設定飲料品項
-    function setQuickDrink(drinkName) {
-      document.getElementById('drink').value = drinkName;
-      document.getElementById('drink').focus();
-    }
 
     // 數量微調按鈕
     function adjustQuantity(amount) {

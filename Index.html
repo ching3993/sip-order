@@ -603,30 +603,59 @@
         border-top: 1px dashed #000000 !important;
       }
 
-    /* 表單標題抬頭 */
-    .form-title {
-      font-size: 20px;
-      font-weight: 700;
-      text-align: center;
+    /* 表單標題區塊 */
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 30px;
-      color: var(--text-main);
       position: relative;
       padding-bottom: 12px;
-      letter-spacing: 1px;
+      border-bottom: 1px solid var(--glass-border);
     }
-    
-    .form-title::after {
+
+    .form-header::after {
       content: "";
       position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: -1px;
+      left: 0;
       width: 50px;
       height: 3px;
       background: var(--primary-gradient);
       border-radius: 2px;
+      z-index: 1;
+    }
+
+    .form-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 1px;
+      margin-bottom: 0;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      transition: var(--transition-smooth);
+    }
+
+    .reset-btn:hover {
+      background: rgba(255, 23, 68, 0.1);
+      color: var(--error-color);
+      transform: rotate(15deg);
     }
     }
+
 
 
     /* RWD 手機版調整 */
@@ -718,8 +747,12 @@
         </div>
       </div>
 
-      <form id="orderForm" onsubmit="handleFormSubmit(event)">
-        <h2 class="form-title">飲料訂購單</h2>
+        <div class="form-header">
+          <h2 class="form-title">飲料訂購單</h2>
+          <button type="button" class="reset-btn" onclick="resetOrderForm()" title="清除表單">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
         
         <!-- 第一項：訂購者 -->
         <div class="form-group">
@@ -856,6 +889,23 @@
   </div>
 
   <script>
+    // 清除/重置表單內容
+    function resetOrderForm() {
+      if (confirm('確定要清除表單內容嗎？')) {
+        document.getElementById('buyer').value = '';
+        document.getElementById('drink').value = '';
+        
+        // 重置甜度為半糖 (預設)
+        document.getElementById('sugar_5').checked = true;
+        
+        // 重置冰量為少冰 (預設)
+        document.getElementById('ice_less').checked = true;
+        
+        // 重置數量為 1
+        document.getElementById('quantity').value = '1';
+      }
+    }
+
     // 直接列印目前表單內容
     function printCurrentOrder() {
       const buyer = document.getElementById('buyer').value.trim();

@@ -605,9 +605,7 @@
 
     /* 表單標題區塊 */
     .form-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      text-align: center;
       margin-bottom: 30px;
       position: relative;
       padding-bottom: 12px;
@@ -618,7 +616,8 @@
       content: "";
       position: absolute;
       bottom: -1px;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
       width: 50px;
       height: 3px;
       background: var(--primary-gradient);
@@ -632,9 +631,14 @@
       color: var(--text-main);
       letter-spacing: 1px;
       margin-bottom: 0;
+      display: inline-block;
     }
 
     .reset-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
       background: transparent;
       border: none;
       color: var(--text-muted);
@@ -652,7 +656,7 @@
     .reset-btn:hover {
       background: rgba(255, 23, 68, 0.1);
       color: var(--error-color);
-      transform: rotate(15deg);
+      transform: translateY(-50%) rotate(15deg);
     }
     }
 

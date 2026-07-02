@@ -289,25 +289,33 @@
       margin: 0;
     }
 
-    /* 提交按鈕 */
-    .submit-btn {
-      width: 100%;
+    /* 表單按鈕列 */
+    .form-btn-row {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .submit-btn, .print-action-btn {
+      flex: 1;
       padding: 16px;
-      background: var(--primary-gradient);
       border: none;
       border-radius: 14px;
       color: #fff;
       font-family: var(--font-family);
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 8px 25px rgba(255, 126, 95, 0.25);
+      gap: 8px;
       transition: var(--transition-smooth);
-      margin-top: 30px;
+    }
+
+    .submit-btn {
+      background: var(--primary-gradient);
+      box-shadow: 0 8px 25px rgba(255, 126, 95, 0.25);
     }
 
     .submit-btn:hover {
@@ -315,7 +323,17 @@
       transform: translateY(-2px);
     }
 
-    .submit-btn:active {
+    .print-action-btn {
+      background: var(--accent-gradient);
+      box-shadow: 0 8px 25px rgba(138, 43, 226, 0.25);
+    }
+
+    .print-action-btn:hover {
+      box-shadow: 0 12px 30px rgba(138, 43, 226, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .submit-btn:active, .print-action-btn:active {
       transform: translateY(1px);
     }
 
@@ -821,17 +839,70 @@
           </div>
         </div>
 
-        <!-- 提交按鈕 -->
-        <button type="submit" class="submit-btn">
-          <span>送出訂單</span>
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
+        <!-- 提交與列印按鈕列 -->
+        <div class="form-btn-row">
+          <button type="submit" class="submit-btn">
+            <span>送出訂單</span>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+          <button type="button" class="print-action-btn" onclick="printCurrentOrder()">
+            <span>列印點單</span>
+            <i class="fa-solid fa-print"></i>
+          </button>
+        </div>
 
       </form>
     </div>
   </div>
 
   <script>
+    // 直接列印目前表單內容
+    function printCurrentOrder() {
+      const buyer = document.getElementById('buyer').value.trim();
+      const drink = document.getElementById('drink').value.trim();
+      const sugar = document.querySelector('input[name="sugar"]:checked').value;
+      const ice = document.querySelector('input[name="ice"]:checked').value;
+      const quantity = document.getElementById('quantity').value;
+
+      if (!buyer || !drink) {
+        alert('請先填寫訂購者與飲料品項後再進行列印！');
+        return;
+      }
+
+      // 填充收據資料準備列印
+      document.getElementById('receiptTime').textContent = getFormattedDate();
+      document.getElementById('receiptBuyer').textContent = buyer;
+      document.getElementById('receiptDrink').textContent = drink;
+      document.getElementById('receiptSugar').textContent = sugar;
+      document.getElementById('receiptIce').textContent = ice;
+      document.getElementById('receiptQty').textContent = quantity + ' 杯';
+
+      // 顯示收據遮罩並隱藏 spinner / status 圖示
+      const overlay = document.getElementById('statusOverlay');
+      const spinner = document.getElementById('loadingSpinner');
+      const statusIcon = document.getElementById('statusIcon');
+      const statusTitle = document.getElementById('statusTitle');
+      const statusDesc = document.getElementById('statusDesc');
+      
+      const receiptCard = document.getElementById('receiptCard');
+      const btnContainer = document.getElementById('btnContainer');
+
+      overlay.classList.add('active');
+      spinner.style.display = 'none';
+      statusIcon.style.display = 'none';
+      
+      statusTitle.textContent = '列印收據明細';
+      statusDesc.textContent = '阿芝已將點單資料帶入收據，您可以點選下方列印。';
+      
+      receiptCard.style.display = 'block';
+      btnContainer.style.display = 'flex';
+
+      // 延遲一下再呼叫列印，確保瀏覽器渲染完成
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    }
+
 
     // 數量微調按鈕
     function adjustQuantity(amount) {
